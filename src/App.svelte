@@ -1,47 +1,98 @@
-<script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+<script>
+  import { onMount } from 'svelte';
+  let menus = [];
+  let votes = [0, 0, 0];
+  let menuUrls = [
+      'https://widget.inisign.com/Widget/Customers/Customer.aspx?token=59db31f7-6775-43a1-a4bb-76a2bfb197ac&scaleToFit=true',
+      'https://widget.inisign.com/Widget/Customers/Customer.aspx?token=aa1358ee-d30e-4289-a630-892cd1210857&scaleToFit=true',
+      'https://widget.inisign.com/Widget/Customers/Customer.aspx?token=4a0457f8-dbfa-4783-8ebe-b5ee0486843f&scaleToFit=true'
+  ];
+  let buttonsDisabled = false;
+
+  function fetchMenu(url, index) {
+      fetch(url)
+          .then(response => response.text())
+          .then(data => {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(data, 'text/html');
+              const menuItems = doc.querySelectorAll('.menu-item');
+              const menu = Array.from(menuItems).map(item => item.querySelector('h2').textContent);
+              menus[index] = menu;
+          });
+  }
+
+  function vote(index) {
+      votes[index]++;
+      buttonsDisabled = true;
+  }
+
+  onMount(() => {
+      menuUrls.forEach((url, index) => fetchMenu(url, index));
+  });
 </script>
 
-<main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
-
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
+  body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
   }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
+  .menu-container {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      padding: 20px;
   }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
+  .menu {
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 30%;
   }
-  .read-the-docs {
-    color: #888;
+  .menu h1 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+  }
+  .menu h2 {
+      font-size: 1.2em;
+      margin: 5px 0;
+  }
+  .vote-button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+  }
+  .vote-button:disabled {
+      background-color: #ccc;
+  }
+  .results {
+      margin-top: 20px;
   }
 </style>
+
+<h1>Stem på dagens lunch</h1>
+<div class="menu-container">
+  {#each menus as menu, index}
+      <div class="menu">
+          <h1>Menu {index + 1}</h1>
+          {#each menu as item}
+              <h2>{item}</h2>
+          {/each}
+          <button class="vote-button" on:click={() => vote(index)} disabled={buttonsDisabled}>Vote</button>
+      </div>
+  {/each}
+</div>
+<div class="results">
+  <h2>Voting Results</h2>
+  {#each menus as menu, index}
+      <div>
+          <h3>Menu {index + 1}: {votes[index]} votes</h3>
+      </div>
+  {/each}
+</div>
