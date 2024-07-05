@@ -76,7 +76,7 @@
   }
 </style>
 
-<h1>Stem på dagens lunch</h1>
+<h1>Stem på dagens kantine</h1>
 <div class="menu-container">
   {#each menus as menu, index}
       <div class="menu">
